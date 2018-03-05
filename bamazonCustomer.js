@@ -1,0 +1,72 @@
+(function () {
+
+	const inquirer = require("inquirer"),
+				mysql = require("mysql"),
+				config = require("./config.js");
+
+	const	connection = mysql.createConnection({
+					host: "localhost",
+					port: 3306,
+					user: "root",
+					password: config.rootPass,
+					database: "bamazon"
+				}); 
+
+	function productBuy(products) {
+
+		inquirer.prompt(
+			{
+				name: "productID",
+				type: "input",
+				message: "Please enter the ID of the product you would like to purchase."
+			},
+			{
+				name: "quantity",
+				type: "input",
+				message: "Please enter the quantity you would like to purchase of the selected item."
+			}
+		).then((answ) => {
+
+			let item;
+
+			products.forEach((row) => {
+				if(row.item_id === answ.productID) {
+					item = row;
+				} else {
+					console.log("item ID not recognized");
+				}
+			});
+
+			if(answ.quantity > item.stock_quantity) {
+				console.log("insufficient quantity in stock");
+			} else {
+				connection.query(
+					"update products set ? where ?",
+					[
+						{
+							stock_quantity: 
+						}
+					],
+					(err) => {
+						if(err) throw err;
+						console.log("You purchased " + answ.quantity + " units of " + item.product_name +". Your total cost is " + (answ.quantity * item.price) + " USD.");
+					}
+				);	
+			}
+		});
+	}
+
+	let products;
+
+	connection.connect((err) => {
+		if(err) throw err;
+		console.log("connection id " + connection.threadId);
+		connection.query("select * from products", (err, res) => {
+			if(err) throw err;
+			products = res;
+			console.log(products);
+			connection.end();
+		}).then(productBuy());
+	});
+
+})();
