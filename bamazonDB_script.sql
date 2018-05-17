@@ -10,6 +10,7 @@ create table products (
 	department_name varchar(99) not null,
 	price int(9) not null,
 	stock_quantity int(9) default 0 not null,
+	product_sales int(9) DEFAULT 0,
 	primary key (item_id)
 );
 
